@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  projectmanager-db:
+    image: postgres:16
+    container_name: projectmanager-db
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: projectmanager
+    ports:
+      - "5432:5432"  # Expose port to host machine
+    volumes:
+      - projectmanager_data:/var/lib/postgresql/data  # Persist data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d projectmanager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  projectmanager_data:
