@@ -2,21 +2,23 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	db "projectmanager/db/gen"
 	"strconv"
-	"testing" //this is the package already provided by the go for testing
+	"testing"
 
 	"github.com/gin-gonic/gin"
 )
 
 type mockStore struct{}
 
-func (m *mockStore) CreateTask(c *gin.Context, arg db.CreateTaskParams) (db.Task, error) {
+// --- Mock CreateTask ---
+func (m *mockStore) CreateTask(ctx context.Context, arg db.CreateTaskParams) (db.Task, error) {
 	if arg.Title == "" {
-		return db.Task{}, errors.New("title is requried")
+		return db.Task{}, errors.New("title is required")
 	}
 	return db.Task{
 		ID:          1,
@@ -27,31 +29,34 @@ func (m *mockStore) CreateTask(c *gin.Context, arg db.CreateTaskParams) (db.Task
 	}, nil
 }
 
-func (m *mockStore) GetTask(task *CreateTaskRequest, id int32) *mockError {
+// --- Mock GetTask ---
+func (m *mockStore) GetTask(ctx context.Context, id int32) (db.Task, error) {
 	if id == 0 {
-		return &mockError{err: errors.New("invalid id")}
+		return db.Task{}, errors.New("invalid id")
 	}
-	task.Title = "Mock Task"
-	task.ProjectID = 1
-	task.AssignedTo = "2"
-	return &mockError{}
+
+	// return a fake task for testing
+	return db.Task{
+		ID:          id,
+		Title:       "Sample Task",
+		Description: "Mocked description",
+		ProjectID:   1,
+		AssignedTo:  "2",
+	}, nil
 }
 
-type mockError struct {
-	err error
-}
-
-func (e *mockError) Error() error {
-	return e.err
-}
 func TestCreateTask(t *testing.T) {
-	server := &Server{store: &mockStore,
-		router: gin.Default()} // use fake DB instead of real one
+	gin.SetMode(gin.TestMode)
 
-	recorder := httptest.NewRecorder()      // fake HTTP response recorder
-	c, _ := gin.CreateTestContext(recorder) // create a fake Gin context
+	server := &Server{
+		store:  &mockStore{}, // fake DB
+		router: gin.Default(),
+	}
 
-	// send a fake JSON request
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+
+	// fake request body
 	body := `{
 		"title": "Test Task",
 		"description": "Testing mock",
@@ -62,7 +67,7 @@ func TestCreateTask(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	c.Request = req
 
-	server.createTask(c) // call your real handler with the fake request
+	server.createTask(c) // call the actual handler
 
 	if recorder.Code != http.StatusOK {
 		t.Errorf("expected status 200, got %d", recorder.Code)
