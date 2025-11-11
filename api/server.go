@@ -45,13 +45,18 @@ func NewServer(sqlDB *sql.DB) *Server {
 		store:  &queriesStore{q: db.New(sqlDB)},
 		router: gin.Default(),
 	}
+	server.setupRouter()
+	return server
+}
+func (server *Server) setupRouter() {
 
-	// ✅ just route to your existing handlers
 	server.router.POST("/users", server.CreateUsers)
 	server.router.POST("/tasks", server.createTask)
 	server.router.GET("/users", server.GetUserByID)
+	authRoutes := server.router.Group("/").Use(AuthMiddleware())
+	authRoutes.POST("/RegisterUser", server.RegisterUser)
+	authRoutes.POST("/login", server.Login)
 
-	return server
 }
 
 // --- Start server ---
