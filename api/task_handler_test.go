@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	db "projectmanager/db/gen"
 	"strconv"
-	"testing"
+	"testing" //this is the package already provided by the go for testing
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +45,7 @@ func (e *mockError) Error() error {
 	return e.err
 }
 func TestCreateTask(t *testing.T) {
-	server := &Server{store: &mockStore{},
+	server := &Server{store: &mockStore,
 		router: gin.Default()} // use fake DB instead of real one
 
 	recorder := httptest.NewRecorder()      // fake HTTP response recorder
