@@ -3,7 +3,11 @@ package api
 import (
 	"log"
 	"net/http"
+	utils "projectmanager/auth"
+	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // LoggerMiddleware logs all incoming requests with status and duration
@@ -28,4 +32,26 @@ func CORSMiddleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Missing token"})
+			c.Abort()
+			return
+		}
+		tokenString := strings.TrimPrefix(authHeader, "Bearer")
+		claims, err := utils.ValidateToken(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid or expired"})
+			c.Abort()
+			return
+		}
+		c.Set("User_id", claims.UserID)
+		c.Next()
+
+	}
 }
