@@ -1,6 +1,6 @@
 CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
-  description TEXT,
+  description TEXT NOT NULL,
   owner_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );

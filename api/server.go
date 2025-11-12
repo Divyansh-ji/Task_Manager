@@ -58,6 +58,8 @@ func (server *Server) setupRouter() {
 	server.router.POST("/users", server.CreateUsers)
 	server.router.POST("/tasks", server.createTask)
 	server.router.GET("/users", server.GetUserByID)
+	server.router.POST("/projects", server.CreateProject)
+
 	authRoutes := server.router.Group("/").Use(AuthMiddleware())
 	authRoutes.POST("/RegisterUser", server.RegisterUser)
 	authRoutes.POST("/login", server.Login)

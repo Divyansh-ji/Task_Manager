@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	db "projectmanager/db/gen"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +22,17 @@ func (s *Server) CreateProject(c *gin.Context) {
 			})
 			return
 		}
-
 	}
+	arg := db.CreateProjectParams{
+		Name:        req.Name,
+		Description: req.Description,
+		OwnerID:     int32(req.OwnerID),
+	}
+	project, err := s.store.CreateProject(c, arg)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, project)
 
 }

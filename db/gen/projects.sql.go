@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createProject = `-- name: CreateProject :one
@@ -22,7 +21,7 @@ RETURNING id, name, description, owner_id
 
 type CreateProjectParams struct {
 	Name        string
-	Description sql.NullString
+	Description string
 	OwnerID     int32
 }
 

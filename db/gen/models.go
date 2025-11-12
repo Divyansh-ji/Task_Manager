@@ -11,7 +11,7 @@ import (
 type Project struct {
 	ID          int32
 	Name        string
-	Description sql.NullString
+	Description string
 	OwnerID     int32
 }
 
