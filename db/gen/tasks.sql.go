@@ -11,16 +11,18 @@ import (
 )
 
 const createTask = `-- name: CreateTask :one
-INSERT INTO tasks (title, description, project_id, assigned_to)
-VALUES ($1, $2, $3, $4)
-RETURNING id, title, description, project_id, assigned_to, status, created_at
+INSERT INTO tasks (title, description, project_id, assigned_to , status , updated_at)
+VALUES ($1, $2, $3, $4, $5 ,$6)
+RETURNING id, title, description, project_id, assigned_to, status, due_date, created_at, updated_at
 `
 
 type CreateTaskParams struct {
 	Title       string
 	Description string
 	ProjectID   int32
-	AssignedTo  int32
+	AssignedTo  sql.NullInt32
+	Status      sql.NullString
+	UpdatedAt   sql.NullTime
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
@@ -29,6 +31,8 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		arg.Description,
 		arg.ProjectID,
 		arg.AssignedTo,
+		arg.Status,
+		arg.UpdatedAt,
 	)
 	var i Task
 	err := row.Scan(
@@ -37,6 +41,10 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		&i.Description,
 		&i.ProjectID,
 		&i.AssignedTo,
+		&i.Status,
+		&i.DueDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -51,7 +59,7 @@ func (q *Queries) DeleteTask(ctx context.Context, id int32) error {
 }
 
 const getTask = `-- name: GetTask :one
-SELECT id, title, description, project_id, assigned_to, status, created_at FROM tasks WHERE id = $1 LIMIT 1
+SELECT id, title, description, project_id, assigned_to, status, due_date, created_at, updated_at FROM tasks WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetTask(ctx context.Context, id int32) (Task, error) {
@@ -63,12 +71,16 @@ func (q *Queries) GetTask(ctx context.Context, id int32) (Task, error) {
 		&i.Description,
 		&i.ProjectID,
 		&i.AssignedTo,
+		&i.Status,
+		&i.DueDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const listTasks = `-- name: ListTasks :many
-SELECT id, title, description, project_id, assigned_to, status, created_at FROM tasks ORDER BY id LIMIT $1 OFFSET $2
+SELECT id, title, description, project_id, assigned_to, status, due_date, created_at, updated_at FROM tasks ORDER BY id LIMIT $1 OFFSET $2
 `
 
 type ListTasksParams struct {
@@ -91,6 +103,10 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 			&i.Description,
 			&i.ProjectID,
 			&i.AssignedTo,
+			&i.Status,
+			&i.DueDate,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -109,7 +125,7 @@ const updateTaskStatus = `-- name: UpdateTaskStatus :one
 UPDATE tasks
 SET status = $2
 WHERE id = $1
-RETURNING id, title, description, project_id, assigned_to, status, created_at
+RETURNING id, title, description, project_id, assigned_to, status, due_date, created_at, updated_at
 `
 
 type UpdateTaskStatusParams struct {
@@ -126,6 +142,10 @@ func (q *Queries) UpdateTaskStatus(ctx context.Context, arg UpdateTaskStatusPara
 		&i.Description,
 		&i.ProjectID,
 		&i.AssignedTo,
+		&i.Status,
+		&i.DueDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

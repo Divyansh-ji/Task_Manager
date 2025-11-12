@@ -1,7 +1,8 @@
 -- name: CreateProject :one
-INSERT INTO projects (name)
-VALUES ($1)
+INSERT INTO projects (name, description, owner_id)
+VALUES (
+  sqlc.arg(name),
+  sqlc.arg(description),
+  sqlc.arg(owner_id)
+)
 RETURNING *;
-
--- name: GetProject :one
-SELECT * FROM projects WHERE id = $1;

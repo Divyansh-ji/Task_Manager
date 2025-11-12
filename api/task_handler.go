@@ -1,9 +1,9 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 	db "projectmanager/db/gen"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,31 +12,14 @@ type CreateTaskRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
 	ProjectID   int64  `json:"project_id" binding:"required"`
-	//Status      string    `json:"status"`
-	AssignedTo  any `json:"assigned_to" binding:"required"`
-	//CreatedAt   time.Time `json:"createdat"`
+	AssignedTo  int64  `json:"assigned_to"` // optional — can be null
+	Status      string `json:"status"`      // optional — default will be set if empty
 }
 
 func (server *Server) createTask(c *gin.Context) {
 	var req CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, err)
-		return
-	}
-
-	var assignedToInt int
-	switch v := req.AssignedTo.(type) {
-	case float64:
-		assignedToInt = int(v)
-	case string:
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "assigned_to must be an integer"})
-			return
-		}
-		assignedToInt = i
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "assigned_to must be an integer"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -44,11 +27,26 @@ func (server *Server) createTask(c *gin.Context) {
 		Title:       req.Title,
 		Description: req.Description,
 		ProjectID:   int32(req.ProjectID),
-		AssignedTo:  int32(assignedToInt),
+		AssignedTo: sql.NullInt32{
+			Int32: int32(req.AssignedTo),
+			Valid: req.AssignedTo != 0, // valid only if non-zero user ID
+		},
+		Status: sql.NullString{
+			String: func() string {
+				if req.Status == "" {
+					return "pending"
+				}
+				return req.Status
+			}(),
+			Valid: true,
+		},
 	}
+
 	task, err := server.store.CreateTask(c, arg)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
 	c.JSON(http.StatusOK, task)
 }

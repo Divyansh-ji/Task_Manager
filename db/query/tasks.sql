@@ -1,6 +1,6 @@
 -- name: CreateTask :one
-INSERT INTO tasks (title, description, project_id, assigned_to)
-VALUES ($1, $2, $3, $4)
+INSERT INTO tasks (title, description, project_id, assigned_to , status , updated_at)
+VALUES ($1, $2, $3, $4, $5 ,$6)
 RETURNING *;
 
 -- name: GetTask :one

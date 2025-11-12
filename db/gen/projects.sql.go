@@ -7,28 +7,33 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createProject = `-- name: CreateProject :one
-INSERT INTO projects (name)
-VALUES ($1)
-RETURNING id, name, created_at
+INSERT INTO projects (name, description, owner_id)
+VALUES (
+  $1,
+  $2,
+  $3
+)
+RETURNING id, name, description, owner_id
 `
 
-func (q *Queries) CreateProject(ctx context.Context, name string) (Project, error) {
-	row := q.db.QueryRowContext(ctx, createProject, name)
-	var i Project
-	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
-	return i, err
+type CreateProjectParams struct {
+	Name        string
+	Description sql.NullString
+	OwnerID     int32
 }
 
-const getProject = `-- name: GetProject :one
-SELECT id, name, created_at FROM projects WHERE id = $1
-`
-
-func (q *Queries) GetProject(ctx context.Context, id int32) (Project, error) {
-	row := q.db.QueryRowContext(ctx, getProject, id)
+func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, createProject, arg.Name, arg.Description, arg.OwnerID)
 	var i Project
-	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.OwnerID,
+	)
 	return i, err
 }

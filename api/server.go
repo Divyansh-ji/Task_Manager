@@ -12,8 +12,9 @@ import (
 // Interface for all DB operations
 type Store interface {
 	CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error)
-	GetUserByID(ctx context.Context, id int32) (db.User, error)
 	CreateTask(ctx context.Context, arg db.CreateTaskParams) (db.Task, error)
+	CreateProject(ctx context.Context, arg db.CreateProjectParams) (db.Project, error)
+	GetUserByID(ctx context.Context, id int32) (db.User, error)
 }
 
 // Struct that implements Store (wraps db.Queries)
@@ -31,6 +32,10 @@ func (s *queriesStore) GetUserByID(ctx context.Context, id int32) (db.User, erro
 
 func (s *queriesStore) CreateTask(ctx context.Context, arg db.CreateTaskParams) (db.Task, error) {
 	return s.q.CreateTask(ctx, arg)
+}
+func (s *queriesStore) CreateProject(ctx context.Context, arg db.CreateProjectParams) (db.Project, error) {
+	return s.q.CreateProject(ctx, arg)
+
 }
 
 // --- Server struct ---

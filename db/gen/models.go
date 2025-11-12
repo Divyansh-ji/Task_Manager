@@ -9,10 +9,10 @@ import (
 )
 
 type Project struct {
-	ID        int32
-	Name      string
-	CreatedAt sql.NullTime
-	OwnerID   int32
+	ID          int32
+	Name        string
+	Description sql.NullString
+	OwnerID     int32
 }
 
 type Task struct {
@@ -20,9 +20,11 @@ type Task struct {
 	Title       string
 	Description string
 	ProjectID   int32
-	AssignedTo  string
-	//Status      sql.NullString
-	//CreatedAt   sql.NullTime
+	AssignedTo  sql.NullInt32
+	Status      sql.NullString
+	DueDate     sql.NullTime
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
 }
 
 type User struct {
