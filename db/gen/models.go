@@ -12,6 +12,7 @@ type Project struct {
 	ID        int32
 	Name      string
 	CreatedAt sql.NullTime
+	OwnerID   int32
 }
 
 type Task struct {
