@@ -1,6 +1,7 @@
-version: "3.9"
+
 
 services:
+  # 🐘 PostgreSQL Database
   projectmanager-db:
     image: postgres:16
     container_name: projectmanager-db
@@ -10,14 +11,28 @@ services:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: projectmanager
     ports:
-      - "5432:5432"  # Expose port to host machine
+      - "5432:5432"
     volumes:
-      - projectmanager_data:/var/lib/postgresql/data  # Persist data
+      - projectmanager_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U root -d projectmanager"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # 🐹 Go Project Manager API
+  projectmanager-api:
+    build: .
+    container_name: projectmanager-api
+    depends_on:
+      projectmanager-db:
+        condition: service_healthy  # wait until DB is ready
+    environment:
+      DB_SOURCE: "postgresql://root:secret@projectmanager-db:5432/projectmanager?sslmode=disable"
+    ports:
+      - "3000:3000"
+    restart: on-failure
+    command: ["./main"]
 
 volumes:
   projectmanager_data:
